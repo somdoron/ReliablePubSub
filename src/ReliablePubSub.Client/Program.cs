@@ -11,7 +11,15 @@ namespace ReliablePubSub.Client
     {
         private static void Main(string[] args)
         {
-            new Simple().Run("tcp://localhost:6669");
+            //new Simple().Run("tcp://localhost:6669");
+            var client = new ReliableClient(m =>
+            {
+                Console.WriteLine($"Message received. Topic: {m.First.ConvertToString()}, Message: {m.Last.ConvertToString()}");
+            }, "tcp://localhost:6669");
+
+            client.Subscribe("A");
+
+            Console.ReadLine();
         }
     }
 }
