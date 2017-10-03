@@ -10,34 +10,41 @@ namespace ReliablePubSub.Client
 {
     public class ReliableClient : IDisposable
     {
-        private string SubscribeCommand = "S";
-        private readonly TimeSpan TimeOut = TimeSpan.FromSeconds(5);
-        private readonly TimeSpan ReconnectTimer = TimeSpan.FromSeconds(5);
+        private const string SubscribeCommand = "S";
+        private readonly TimeSpan _connectionTimeOut;
+        private readonly TimeSpan _reconnectInterval;
         private const string WelcomeMessage = "WM";
         private const string HeartbeatMessage = "HB";
 
         private readonly string[] m_addresses;
         private readonly Action<NetMQMessage> _subscriberMessageHandler;
+        private readonly Action<Exception, NetMQMessage> _subscriberErrorHandler;
 
-        private NetMQActor m_actor;
+        private readonly NetMQActor m_actor;
         private NetMQPoller m_poller;
         private NetMQTimer m_timeoutTimer;
         private NetMQTimer m_reconnectTimer;
         private SubscriberSocket m_subscriber;
 
 
-        List<string> m_subscriptions = new List<string>();
+        readonly List<string> m_subscriptions = new List<string>();
         private PairSocket m_shim;
 
         /// <summary>
         /// Create reliable client
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="reconnectInterval"></param>
+        /// <param name="subscriberMessageHandler"></param>
+        /// <param name="subscriberErrorHandler"></param>
         /// <param name="addresses">addresses of the reliable servers</param>
-        public ReliableClient(Action<NetMQMessage> subscriberMessageHandler = null, params string[] addresses)
+        /// <param name="connectionTimeOut"></param>
+        public ReliableClient(TimeSpan connectionTimeOut, TimeSpan reconnectInterval, Action<NetMQMessage> subscriberMessageHandler = null, Action<Exception, NetMQMessage> subscriberErrorHandler = null, params string[] addresses)
         {
+            _connectionTimeOut = connectionTimeOut;
+            _reconnectInterval = reconnectInterval;
             m_addresses = addresses;
             _subscriberMessageHandler = subscriberMessageHandler;
+            _subscriberErrorHandler = subscriberErrorHandler;
             m_actor = NetMQActor.Create(Run);
         }
 
@@ -46,10 +53,10 @@ namespace ReliablePubSub.Client
             m_shim = shim;
             shim.ReceiveReady += OnShimMessage;
 
-            m_timeoutTimer = new NetMQTimer(TimeOut);
+            m_timeoutTimer = new NetMQTimer(_connectionTimeOut);
             m_timeoutTimer.Elapsed += OnTimeoutTimer;
 
-            m_reconnectTimer = new NetMQTimer(ReconnectTimer);
+            m_reconnectTimer = new NetMQTimer(_reconnectInterval);
             m_reconnectTimer.Elapsed += OnReconnectTimer;
 
             m_poller = new NetMQPoller { shim, m_timeoutTimer, m_reconnectTimer };
@@ -119,7 +126,16 @@ namespace ReliablePubSub.Client
 
         private void OnActorMessage(object sender, NetMQActorEventArgs e)
         {
-            _subscriberMessageHandler?.Invoke(e.Actor.ReceiveMultipartMessage());
+            var message = e.Actor.ReceiveMultipartMessage();
+
+            try
+            {
+                _subscriberMessageHandler?.Invoke(message);
+            }
+            catch (Exception ex)
+            {
+                _subscriberErrorHandler?.Invoke(ex, message);
+            }
         }
 
         private void Connect()
@@ -136,7 +152,7 @@ namespace ReliablePubSub.Client
                 poller.Stop();
             };
 
-            var timeoutTimer = new NetMQTimer(TimeOut);
+            var timeoutTimer = new NetMQTimer(_connectionTimeOut);
 
             // just cancel the poller without seting the connected socket
             timeoutTimer.Elapsed += (sender, args) => poller.Stop();

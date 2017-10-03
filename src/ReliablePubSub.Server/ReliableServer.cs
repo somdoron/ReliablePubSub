@@ -10,20 +10,21 @@ namespace ReliablePubSub.Server
 {
     class ReliableServer
     {
-        private readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(2);
+        private readonly TimeSpan _heartbeatInterval;
         private const string PublishMessageCommand = "P";
         private const string WelcomeMessage = "WM";
         private const string HeartbeatMessage = "HB";
 
-        private string m_address;
-        private NetMQActor m_actor;
+        private readonly string m_address;
+        private readonly NetMQActor m_actor;
         private XPublisherSocket m_publisherSocket;
         private NetMQTimer m_heartbeatTimer;
         private NetMQPoller m_poller;
 
-        public ReliableServer(string address)
+        public ReliableServer(TimeSpan heartbeatInterval, string address)
         {
             m_address = address;
+            _heartbeatInterval = heartbeatInterval;
 
             // actor is like thread with builtin pair sockets connect the user thread with the actor thread
             m_actor = NetMQActor.Create(Run);
@@ -43,7 +44,7 @@ namespace ReliablePubSub.Server
 
                 m_publisherSocket.ReceiveReady += DropPublisherSubscriptions;
 
-                m_heartbeatTimer = new NetMQTimer(HeartbeatInterval);
+                m_heartbeatTimer = new NetMQTimer(_heartbeatInterval);
                 m_heartbeatTimer.Elapsed += OnHeartbeatTimerElapsed;
 
                 shim.ReceiveReady += OnShimMessage;

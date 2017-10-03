@@ -13,7 +13,7 @@ namespace ReliablePubSub.Server
     {
         private static void Main(string[] args)
         {
-            ReliableServer server = new ReliableServer("tcp://*:6669");
+            ReliableServer server = new ReliableServer(TimeSpan.FromSeconds(5), "tcp://*:6669");
 
             while (true)
             {
@@ -22,7 +22,7 @@ namespace ReliablePubSub.Server
                 message.Append(new Random().Next().ToString());
                 server.Publish(message);
 
-                Thread.Sleep(10);
+                Thread.Sleep(100);
             }
         }
     }
