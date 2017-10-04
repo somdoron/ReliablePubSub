@@ -13,19 +13,16 @@ namespace ReliablePubSub.Server
     {
         private static void Main(string[] args)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            ReliableServer server = new ReliableServer(TimeSpan.FromSeconds(5), "tcp://*:6669");
+
+            while (true)
             {
-               ReliableServer server = new ReliableServer(context, "tcp://*:6669");
+                NetMQMessage message = new NetMQMessage();
+                message.Append("A");
+                message.Append(new Random().Next().ToString());
+                server.Publish(message);
 
-                while (true)
-                {
-                    NetMQMessage message = new NetMQMessage();
-                    message.Append("A");
-                    message.Append(new Random().Next().ToString());
-                    server.Publish(message);
-
-                    Thread.Sleep(1000);
-                }
+                Thread.Sleep(100);
             }
         }
     }
