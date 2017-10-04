@@ -56,6 +56,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReliableServer.cs" />
     <Compile Include="Simple.cs" />
+    <Compile Include="SnapshotServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -16,19 +16,19 @@ namespace ReliablePubSub.Client
         private const string WelcomeMessage = "WM";
         private const string HeartbeatMessage = "HB";
 
-        private readonly string[] m_addresses;
+        private readonly string[] _addresses;
         private readonly Action<NetMQMessage> _subscriberMessageHandler;
         private readonly Action<Exception, NetMQMessage> _subscriberErrorHandler;
 
-        private readonly NetMQActor m_actor;
-        private NetMQPoller m_poller;
-        private NetMQTimer m_timeoutTimer;
-        private NetMQTimer m_reconnectTimer;
-        private SubscriberSocket m_subscriber;
+        private readonly NetMQActor _actor;
+        private NetMQPoller _poller;
+        private NetMQTimer _timeoutTimer;
+        private NetMQTimer _reconnectTimer;
+        private SubscriberSocket _subscriber;
 
 
-        readonly List<string> m_subscriptions = new List<string>();
-        private PairSocket m_shim;
+        readonly List<string> _subscriptions = new List<string>();
+        private PairSocket _shim;
 
         /// <summary>
         /// Create reliable client
@@ -42,32 +42,32 @@ namespace ReliablePubSub.Client
         {
             _connectionTimeOut = connectionTimeOut;
             _reconnectInterval = reconnectInterval;
-            m_addresses = addresses;
+            _addresses = addresses;
             _subscriberMessageHandler = subscriberMessageHandler;
             _subscriberErrorHandler = subscriberErrorHandler;
-            m_actor = NetMQActor.Create(Run);
+            _actor = NetMQActor.Create(Run);
         }
 
         private void Run(PairSocket shim)
         {
-            m_shim = shim;
+            _shim = shim;
             shim.ReceiveReady += OnShimMessage;
 
-            m_timeoutTimer = new NetMQTimer(_connectionTimeOut);
-            m_timeoutTimer.Elapsed += OnTimeoutTimer;
+            _timeoutTimer = new NetMQTimer(_connectionTimeOut);
+            _timeoutTimer.Elapsed += OnTimeoutTimer;
 
-            m_reconnectTimer = new NetMQTimer(_reconnectInterval);
-            m_reconnectTimer.Elapsed += OnReconnectTimer;
+            _reconnectTimer = new NetMQTimer(_reconnectInterval);
+            _reconnectTimer.Elapsed += OnReconnectTimer;
 
-            m_poller = new NetMQPoller { shim, m_timeoutTimer, m_reconnectTimer };
+            _poller = new NetMQPoller { shim, _timeoutTimer, _reconnectTimer };
 
             shim.SignalOK();
 
             Connect();
 
-            m_poller.Run();
+            _poller.Run();
 
-            m_subscriber?.Dispose();
+            _subscriber?.Dispose();
         }
 
         private void OnReconnectTimer(object sender, NetMQTimerEventArgs e)
@@ -79,9 +79,9 @@ namespace ReliablePubSub.Client
         private void OnTimeoutTimer(object sender, NetMQTimerEventArgs e)
         {
             // dispose the current subscriber socket and try to connect
-            m_poller.Remove(m_subscriber);
-            m_subscriber.Dispose();
-            m_subscriber = null;
+            _poller.Remove(_subscriber);
+            _subscriber.Dispose();
+            _subscriber = null;
             Connect();
         }
 
@@ -91,20 +91,20 @@ namespace ReliablePubSub.Client
 
             if (command == NetMQActor.EndShimMessage)
             {
-                m_poller.Stop();
+                _poller.Stop();
             }
             else if (command == SubscribeCommand)
             {
                 string topic = e.Socket.ReceiveFrameString();
-                m_subscriptions.Add(topic);
-                m_subscriber?.Subscribe(topic);
+                _subscriptions.Add(topic);
+                _subscriber?.Subscribe(topic);
             }
         }
 
         private void OnSubscriberMessage(object sender, NetMQSocketEventArgs e)
         {
             // we just forward the message to the actor
-            var message = m_subscriber.ReceiveMultipartMessage();
+            var message = _subscriber.ReceiveMultipartMessage();
 
             var topic = message[0].ConvertToString();
 
@@ -115,12 +115,12 @@ namespace ReliablePubSub.Client
             else if (topic == HeartbeatMessage)
             {
                 // we got a heartbeat, lets postponed the timer
-                m_timeoutTimer.Enable = false;
-                m_timeoutTimer.Enable = true;
+                _timeoutTimer.Enable = false;
+                _timeoutTimer.Enable = true;
             }
             else
             {
-                m_shim.SendMultipartMessage(message);
+                _shim.SendMultipartMessage(message);
             }
         }
 
@@ -158,7 +158,7 @@ namespace ReliablePubSub.Client
             timeoutTimer.Elapsed += (sender, args) => poller.Stop();
             poller.Add(timeoutTimer);
 
-            foreach (var address in m_addresses)
+            foreach (var address in _addresses)
             {
                 var socket = new SubscriberSocket();
                 sockets.Add(socket);
@@ -188,31 +188,31 @@ namespace ReliablePubSub.Client
                 }
 
                 // set the socket
-                m_subscriber = connectedSocket;
+                _subscriber = connectedSocket;
 
                 // drop the welcome message
-                m_subscriber.SkipMultipartMessage();
+                _subscriber.SkipMultipartMessage();
 
                 // subscribe to heartbeat
-                m_subscriber.Subscribe(HeartbeatMessage);
+                _subscriber.Subscribe(HeartbeatMessage);
 
                 // subscribe to all subscriptions
-                foreach (string subscription in m_subscriptions)
+                foreach (string subscription in _subscriptions)
                 {
-                    m_subscriber.Subscribe(subscription);
+                    _subscriber.Subscribe(subscription);
                 }
 
-                m_subscriber.ReceiveReady -= handleMessage;
-                m_subscriber.ReceiveReady += OnSubscriberMessage;
+                _subscriber.ReceiveReady -= handleMessage;
+                _subscriber.ReceiveReady += OnSubscriberMessage;
 
-                m_actor.ReceiveReady += OnActorMessage;
-                m_poller.Add(m_actor);
+                _actor.ReceiveReady += OnActorMessage;
+                _poller.Add(_actor);
 
-                m_poller.Add(m_subscriber);
+                _poller.Add(_subscriber);
 
 
-                m_timeoutTimer.Enable = true;
-                m_reconnectTimer.Enable = false;
+                _timeoutTimer.Enable = true;
+                _reconnectTimer.Enable = false;
             }
             else
             {
@@ -224,24 +224,24 @@ namespace ReliablePubSub.Client
                     socket.Dispose();
                 }
 
-                m_reconnectTimer.Enable = true;
-                m_timeoutTimer.Enable = false;
+                _reconnectTimer.Enable = true;
+                _timeoutTimer.Enable = false;
             }
         }
 
         public void Subscribe(string topic)
         {
-            m_actor.SendMoreFrame(SubscribeCommand).SendFrame(topic);
+            _actor.SendMoreFrame(SubscribeCommand).SendFrame(topic);
         }
 
         public NetMQMessage ReceiveMessage()
         {
-            return m_actor.ReceiveMultipartMessage();
+            return _actor.ReceiveMultipartMessage();
         }
 
         public void Dispose()
         {
-            m_actor.Dispose();
+            _actor.Dispose();
         }
     }
 }

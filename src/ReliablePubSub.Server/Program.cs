@@ -13,16 +13,23 @@ namespace ReliablePubSub.Server
     {
         private static void Main(string[] args)
         {
-            ReliableServer server = new ReliableServer(TimeSpan.FromSeconds(5), "tcp://*:6669");
-
-            while (true)
+            using (var snapshotServer = new SnapshotServer("tcp://*:6668"))
             {
-                NetMQMessage message = new NetMQMessage();
-                message.Append("A");
-                message.Append(new Random().Next().ToString());
-                server.Publish(message);
 
-                Thread.Sleep(100);
+            }
+            Console.ReadLine();
+
+            using (var server = new ReliableServer(TimeSpan.FromSeconds(5), "tcp://*:6669"))
+            {
+                while (true)
+                {
+                    NetMQMessage message = new NetMQMessage();
+                    message.Append("A");
+                    message.Append(new Random().Next().ToString());
+                    server.Publish(message);
+
+                    Thread.Sleep(100);
+                }
             }
         }
     }

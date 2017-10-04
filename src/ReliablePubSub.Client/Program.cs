@@ -11,6 +11,14 @@ namespace ReliablePubSub.Client
     {
         private static void Main(string[] args)
         {
+            using (var snapshotClient = new SnapshotClient(TimeSpan.FromSeconds(30), "tcp://localhost:6668"))
+            {
+                snapshotClient.Connect();
+                NetMQMessage snapshot;
+                if (snapshotClient.TryGetSnapshot("A", out snapshot))
+                    Console.WriteLine(snapshot.Last.ConvertToString());
+            }
+
             //new Simple().Run("tcp://localhost:6669");
             var client = new ReliableClient(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), m =>
              {
