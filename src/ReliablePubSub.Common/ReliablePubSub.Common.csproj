@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{342FDA8E-65EC-45AA-9FA4-CD187DD086DD}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{86F28B88-9678-498A-AE05-755CBCA7F58A}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ReliablePubSub.Server</RootNamespace>
-    <AssemblyName>ReliablePubSub.Server</AssemblyName>
+    <RootNamespace>ReliablePubSub.Common</RootNamespace>
+    <AssemblyName>ReliablePubSub.Common</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -56,21 +53,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="DefaultComparer.cs" />
+    <Compile Include="DefaultLastValueCache.cs" />
+    <Compile Include="IKeyExtractor.cs" />
+    <Compile Include="ILastValueCache.cs" />
+    <Compile Include="ISerializer.cs" />
+    <Compile Include="MyMessage.cs" />
+    <Compile Include="NetMqMessageExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReliableServer.cs" />
-    <Compile Include="Simple.cs" />
-    <Compile Include="SnapshotServer.cs" />
+    <Compile Include="TopicConfig.cs" />
+    <Compile Include="WireSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ReliablePubSub.Common\ReliablePubSub.Common.csproj">
-      <Project>{86f28b88-9678-498a-ae05-755cbca7f58a}</Project>
-      <Name>ReliablePubSub.Common</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

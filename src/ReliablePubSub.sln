@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliablePubSub.Server", "Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliablePubSub.Client", "ReliablePubSub.Client\ReliablePubSub.Client.csproj", "{77A17A2C-8A21-47B6-A04B-3118A0C9EABC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliablePubSub.Common", "ReliablePubSub.Common\ReliablePubSub.Common.csproj", "{86F28B88-9678-498A-AE05-755CBCA7F58A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{77A17A2C-8A21-47B6-A04B-3118A0C9EABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77A17A2C-8A21-47B6-A04B-3118A0C9EABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77A17A2C-8A21-47B6-A04B-3118A0C9EABC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86F28B88-9678-498A-AE05-755CBCA7F58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86F28B88-9678-498A-AE05-755CBCA7F58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86F28B88-9678-498A-AE05-755CBCA7F58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86F28B88-9678-498A-AE05-755CBCA7F58A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

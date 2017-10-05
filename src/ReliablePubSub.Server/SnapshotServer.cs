@@ -11,13 +11,16 @@ namespace ReliablePubSub.Server
     class SnapshotServer : IDisposable
     {
         private readonly string _address;
+        private readonly Func<string, IEnumerable<byte[]>> _snapshotGenerator;
         private readonly NetMQActor _actor;
         private NetMQPoller _poller;
-        //private RouterSocket _router;
 
-        public SnapshotServer(string address)
+        public SnapshotServer(string address, Func<string, IEnumerable<byte[]>> snapshotGenerator)
         {
+            if (snapshotGenerator == null) throw new ArgumentNullException(nameof(snapshotGenerator));
+
             _address = address;
+            _snapshotGenerator = snapshotGenerator;
             _actor = NetMQActor.Create(Run);
         }
 
@@ -54,17 +57,17 @@ namespace ReliablePubSub.Server
         {
             var message = e.Socket.ReceiveMultipartMessage();
             string topic = message.Last.ConvertToString();
-            var snapshot = new byte[] { 1, 2, 3, 4, 5 }; //_snapshotFactory(topic);
 
-            var response = new NetMQMessage();
-            response.Append(message.First);
-            response.AppendEmptyFrame();
-            response.Append(snapshot);
+            var snapshot = _snapshotGenerator(topic);
+
+            var response = new NetMQMessage(snapshot);
+            response.PushEmptyFrame();
+            response.Push(message.First);
 
             //TODO: consider sendmoreframe to stream the snapshot
             e.Socket.SendMultipartMessage(response);
         }
-
+        
         public void Dispose()
         {
             _actor.Dispose();
