@@ -18,16 +18,10 @@ namespace ReliablePubSub.Common
         public ISerializer<TValue> Serializer { get; set; }
         public IComparer<TValue> Comparer { get; set; }
         public string Topic { get; }
-
-        public IEnumerable<byte[]> GetSnapshot()
-        {
-            return LastValueCache.All().Select(x => Serializer.Serialize(x.Value));
-        }
     }
 
     public interface ITopicConfig
     {
         string Topic { get; }
-        IEnumerable<byte[]> GetSnapshot();
     }
 }

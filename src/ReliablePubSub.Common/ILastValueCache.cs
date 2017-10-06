@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ReliablePubSub.Common
 {
-    public interface ILastValueCache<TKey, TValue>
+    public interface ILastValueCache<in TKey, TValue>
     {
-        TValue this[TKey key] { get; set; }
-        bool TryGetValue(TKey key, out TValue value);
-        void UpdateValue(TKey key, TValue value);
-        IEnumerable<KeyValuePair<TKey, TValue>> All();
+        IEnumerable<TValue> All(string topic);
+        void AddOrUpdate(string topic, TKey key, TValue data);
+        void Clear();
     }
 }

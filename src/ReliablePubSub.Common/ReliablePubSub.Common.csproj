@@ -58,6 +58,7 @@
     <Compile Include="IKeyExtractor.cs" />
     <Compile Include="ILastValueCache.cs" />
     <Compile Include="ISerializer.cs" />
+    <Compile Include="ISnapshotGenerator.cs" />
     <Compile Include="MyMessage.cs" />
     <Compile Include="NetMqMessageExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

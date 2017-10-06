@@ -58,8 +58,11 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Publisher.cs" />
+    <Compile Include="PublisherExtensions.cs" />
     <Compile Include="ReliableServer.cs" />
     <Compile Include="Simple.cs" />
+    <Compile Include="SnapshotCache.cs" />
     <Compile Include="SnapshotServer.cs" />
   </ItemGroup>
   <ItemGroup>

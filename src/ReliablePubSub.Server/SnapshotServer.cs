@@ -5,17 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
+using ReliablePubSub.Common;
 
 namespace ReliablePubSub.Server
 {
     class SnapshotServer : IDisposable
     {
         private readonly string _address;
-        private readonly Func<string, IEnumerable<byte[]>> _snapshotGenerator;
+        private readonly ISnapshotGenerator _snapshotGenerator;
         private readonly NetMQActor _actor;
         private NetMQPoller _poller;
 
-        public SnapshotServer(string address, Func<string, IEnumerable<byte[]>> snapshotGenerator)
+        public SnapshotServer(string address, ISnapshotGenerator snapshotGenerator)
         {
             if (snapshotGenerator == null) throw new ArgumentNullException(nameof(snapshotGenerator));
 
@@ -58,7 +59,7 @@ namespace ReliablePubSub.Server
             var message = e.Socket.ReceiveMultipartMessage();
             string topic = message.Last.ConvertToString();
 
-            var snapshot = _snapshotGenerator(topic);
+            var snapshot = _snapshotGenerator.GenerateSnapshot(topic);
 
             var response = new NetMQMessage(snapshot);
             response.PushEmptyFrame();
@@ -67,7 +68,7 @@ namespace ReliablePubSub.Server
             //TODO: consider sendmoreframe to stream the snapshot
             e.Socket.SendMultipartMessage(response);
         }
-        
+
         public void Dispose()
         {
             _actor.Dispose();
