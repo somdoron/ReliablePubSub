@@ -3,9 +3,9 @@ using Wire.ValueSerializers;
 
 namespace ReliablePubSub.Common
 {
-    public interface ISerializer<TValue>
+    public interface ISerializer
     {
-        byte[] Serialize(TValue value);
-        TValue Deserialize(byte[] bytes);
+        byte[] Serialize(object value);
+        object Deserialize(byte[] bytes);
     }
 }

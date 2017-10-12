@@ -11,11 +11,11 @@ namespace ReliablePubSub.Server
         private readonly SnapshotServer _snapshotServer;
         private readonly SnapshotCache _snapshotCache;
 
-        public Publisher(string publisherAddress, string snapshotAddress, IEnumerable<string> topics)
+        public Publisher(string baseAddress, ushort publisherPort, ushort snapshotPort, IEnumerable<string> topics)
         {
             _snapshotCache = new SnapshotCache(topics);
-            _publishServer = new ReliableServer(TimeSpan.FromSeconds(5), publisherAddress);
-            _snapshotServer = new SnapshotServer(snapshotAddress, _snapshotCache);
+            _publishServer = new ReliableServer(TimeSpan.FromSeconds(5), $"{baseAddress}:{publisherPort}");
+            _snapshotServer = new SnapshotServer($"{baseAddress}:{snapshotPort}", _snapshotCache);
         }
 
         public void Publish(string topic, string key, byte[] data)

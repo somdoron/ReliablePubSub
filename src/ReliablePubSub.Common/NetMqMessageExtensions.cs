@@ -31,7 +31,7 @@ namespace ReliablePubSub.Common
         public static NetMQMessage CreateMessage(string topic, byte[] data)
         {
             var message = new NetMQMessage();
-            if (!string.IsNullOrEmpty(topic)) message.Append(Encoding.Unicode.GetBytes(topic));
+            if (!string.IsNullOrEmpty(topic)) message.Append(topic);
             message.Append(data);
             return message;
         }

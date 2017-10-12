@@ -3,11 +3,11 @@ using Wire;
 
 namespace ReliablePubSub.Common
 {
-    public class WireSerializer<TValue> : ISerializer<TValue>
+    public class WireSerializer : ISerializer
     {
-        readonly Serializer _serializer = new Serializer();
+        readonly Serializer _serializer = new Serializer(new SerializerOptions()); //TODO: consider to use known types
 
-        public byte[] Serialize(TValue value)
+        public byte[] Serialize(object value)
         {
             using (var stream = new MemoryStream())
             {
@@ -16,11 +16,11 @@ namespace ReliablePubSub.Common
             }
         }
 
-        public TValue Deserialize(byte[] bytes)
+        public object Deserialize(byte[] bytes)
         {
             using (var stream = new MemoryStream(bytes))
             {
-                return _serializer.Deserialize<TValue>(stream);
+                return _serializer.Deserialize(stream);
             }
         }
     }

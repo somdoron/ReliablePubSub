@@ -16,16 +16,37 @@ namespace ReliablePubSub.Server
     {
         private static void Main(string[] args)
         {
-            var topics = new Dictionary<string, ITopicConfig>();
-            var topic1 = new TopicConfig<MyMessage>("topic1")
-            {
-                Serializer = new WireSerializer<MyMessage>(),
-                Comparer = new DefaultComparer<MyMessage>(),
-                KeyExtractor = new DefaultKeyExtractor<MyMessage, string>(x => x.Key)
-            };
-            topics.Add(topic1.Topic, topic1);
+            //do
+            //{
+            //    Console.WriteLine("Running");
+            //    using (var server = new ReliableServer(TimeSpan.FromSeconds(2), "tcp://*:6669"))
+            //    {
+            //        long id = 0;
+            //        for (int i = 0; i < 100; i++)
+            //        {
+            //            NetMQMessage message = new NetMQMessage();
+            //            message.Append("topic1");
+            //            message.Append(DateTime.UtcNow.ToString());
+            //            server.Publish(message);
 
-            var publisher = new Publisher("tcp://*:6669", "tcp://*:6668", topics.Keys);
+            //            Thread.Sleep(100);
+            //        }
+            //    }
+            //    Console.WriteLine("Stopped");
+            //} while (Console.ReadKey().Key != ConsoleKey.Escape);
+
+            var knownTypes = new Dictionary<Type, TypeConfig>();
+            knownTypes.Add(typeof(MyMessage), new TypeConfig(typeof(MyMessage))
+            {
+                Serializer = new WireSerializer(),
+                Comparer = new DefaultComparer<MyMessage>(),
+                KeyExtractor = new DefaultKeyExtractor<MyMessage>(x => x.Key)
+            });
+
+            var topics = new Dictionary<string, Type>();
+            topics.Add("topic1", typeof(MyMessage));
+
+            var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys);
 
             long id = 0;
             var rnd = new Random(1);
@@ -38,8 +59,7 @@ namespace ReliablePubSub.Server
                     Body = $"Body: {Guid.NewGuid().ToString()}",
                     TimeStamp = DateTime.UtcNow
                 };
-
-                publisher.Publish(topics["topic1"], message);
+                publisher.Publish(knownTypes, "topic1", message);
                 Thread.Sleep(100);
             }
         }

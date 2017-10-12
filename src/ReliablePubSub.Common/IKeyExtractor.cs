@@ -7,23 +7,28 @@ using System.Threading.Tasks;
 
 namespace ReliablePubSub.Common
 {
-    public interface IKeyExtractor<in TValue, out TKey>
+    public interface IKeyExtractor
     {
-        TKey Extract(TValue value);
+        string Extract(object value);
     }
 
-    public class DefaultKeyExtractor<TValue, TKey> : IKeyExtractor<TValue, TKey>
+    public class DefaultKeyExtractor<TValue> : IKeyExtractor
     {
-        private readonly Func<TValue, TKey> _keyExtractorFunc;
+        private readonly Func<TValue, string> _keyExtractorFunc;
 
-        public DefaultKeyExtractor(Expression<Func<TValue, TKey>> keyExtractorExpression)
+        public DefaultKeyExtractor(Expression<Func<TValue, string>> keyExtractorExpression)
         {
             _keyExtractorFunc = keyExtractorExpression.Compile();
         }
 
-        public TKey Extract(TValue value)
+        public string Extract(TValue value)
         {
             return _keyExtractorFunc(value);
+        }
+
+        public string Extract(object value)
+        {
+            return Extract((TValue)value);
         }
     }
 }

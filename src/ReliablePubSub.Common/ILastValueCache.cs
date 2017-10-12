@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace ReliablePubSub.Common
 {
-    public interface ILastValueCache<in TKey, TValue>
+    public interface ILastValueCache
     {
-        IEnumerable<TValue> All(string topic);
-        void AddOrUpdate(string topic, TKey key, TValue data);
-        void Clear();
+        bool TryGet(string topic, string key, out object data);
+        void AddOrUpdate(string topic, string key, object data);
+        void Clear(string topic);
     }
 }

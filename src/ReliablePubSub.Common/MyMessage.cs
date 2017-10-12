@@ -20,5 +20,10 @@ namespace ReliablePubSub.Common
             var idComparison = Id.CompareTo(other.Id);
             return idComparison;
         }
+
+        public override string ToString()
+        {
+            return $"Id:{Id} Key:{Key} Body:{Body} Time:{TimeStamp:hh:mm:ss.fff}";
+        }
     }
 }

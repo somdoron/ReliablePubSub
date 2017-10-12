@@ -5,7 +5,7 @@ using ReliablePubSub.Common;
 
 namespace ReliablePubSub.Server
 {
-    public class SnapshotCache : LastValueCache<string, byte[]>, ISnapshotGenerator
+    public class SnapshotCache : DefaultLastValueCache<byte[]>, ISnapshotGenerator
     {
         public SnapshotCache(IEnumerable<string> topics) : base(topics)
         {
