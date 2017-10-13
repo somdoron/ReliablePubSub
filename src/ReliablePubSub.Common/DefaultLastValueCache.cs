@@ -1,13 +1,16 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace ReliablePubSub.Common
 {
     public class DefaultLastValueCache<TValue> : ILastValueCache
     {
+        private readonly Action<string, string, TValue> _postUpdateAction;
         private readonly Dictionary<string, ConcurrentDictionary<string, TValue>> _cache = new Dictionary<string, ConcurrentDictionary<string, TValue>>();
-        public DefaultLastValueCache(IEnumerable<string> topics)
+        public DefaultLastValueCache(IEnumerable<string> topics, Action<string, string, TValue> postUpdateAction = null)
         {
+            _postUpdateAction = postUpdateAction;
             foreach (var topic in topics)
                 _cache.Add(topic, new ConcurrentDictionary<string, TValue>());
         }
@@ -29,9 +32,14 @@ namespace ReliablePubSub.Common
         {
             ConcurrentDictionary<string, TValue> cache;
             if (_cache.TryGetValue(topic, out cache))
-                cache[key] = (TValue)data;
+            {
+                var item = (TValue)data;
+                cache[key] = item;
+                _postUpdateAction?.Invoke(topic, key, item);
+            }
         }
 
+        //when disconnect/reconnect happens on client, in some situations we want to clear cache to avoid working with stale data
         public void Clear(string topic)
         {
             ConcurrentDictionary<string, TValue> cache;

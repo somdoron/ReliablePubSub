@@ -19,7 +19,11 @@ namespace ReliablePubSub.Client
             var topics = new Dictionary<string, Type>();
             topics.Add("topic1", typeof(MyMessage));
 
-            var subscriber = new Subscriber(new[] { "tcp://localhost" }, 6669, 6668, knownTypes, topics, new DefaultLastValueCache<object>(topics.Keys));
+            var cache = new DefaultLastValueCache<object>(topics.Keys, (topic, key, value) =>
+            {
+                Console.WriteLine($"Client Cache Updated. Topic:{topic} Key:{key} Value:{value} ClientTime:{DateTime.Now:hh:mm:ss.fff}");
+            });
+            var subscriber = new Subscriber(new[] { "tcp://localhost" }, 6669, 6668, knownTypes, topics, cache);
 
 
             //using (var snapshotClient = new SnapshotClient(TimeSpan.FromSeconds(30), "tcp://localhost:6668"))

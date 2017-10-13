@@ -45,7 +45,7 @@ namespace ReliablePubSub.Client
 
             _lastValueCache.AddOrUpdate(topic, key, obj);
 
-            Console.WriteLine($"From subscriber:{obj}");
+            Debug.WriteLine($"From subscriber:{obj}");
         }
 
         private void GetSnapshots()
@@ -72,7 +72,7 @@ namespace ReliablePubSub.Client
                             if (!_lastValueCache.TryGet(topic, key, out cachedValue) || type.Comparer.Compare(cachedValue, obj) < 0)
                             {
                                 _lastValueCache.AddOrUpdate(topic, key, obj);
-                                Console.WriteLine($"From snapshot:{obj}");
+                                Debug.WriteLine($"From snapshot:{obj}");
                             }
                             else
                                 Debug.WriteLine($"Object from snapshot dropped. Cached: {cachedValue} Snapshot: {obj}");
