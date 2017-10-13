@@ -40,15 +40,16 @@ namespace ReliablePubSub.Server
             var topics = new Dictionary<string, Type>();
             topics.Add("topic1", typeof(MyMessage));
 
-            var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys);
-            using (var tokenSource = new CancellationTokenSource())
+
+            using (var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys))
+            using (var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
                 var task = Task.Run(() =>
                 {
 
                     long id = 0;
                     var rnd = new Random(1);
-                    while (tokenSource.IsCancellationRequested)
+                    while (!tokenSource.IsCancellationRequested)
                     {
                         var message = new MyMessage()
                         {
@@ -64,9 +65,7 @@ namespace ReliablePubSub.Server
 
                 while (Console.ReadKey().Key != ConsoleKey.Escape) { }
                 tokenSource.Cancel();
-                task.Wait(tokenSource.Token);
             }
         }
     }
-}
 }

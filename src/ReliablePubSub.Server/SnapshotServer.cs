@@ -67,6 +67,7 @@ namespace ReliablePubSub.Server
 
         public void Dispose()
         {
+            _poller.Stop();
             _actor.Dispose();
         }
     }

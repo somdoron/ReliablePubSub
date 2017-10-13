@@ -29,7 +29,6 @@ namespace ReliablePubSub.Client
 
         readonly List<string> _subscriptions = new List<string>();
         private PairSocket _shim;
-        private Timer _monitorTimer;
 
         /// <summary>
         /// Create reliable client
@@ -60,15 +59,6 @@ namespace ReliablePubSub.Client
 
             _reconnectTimer = new NetMQTimer(_reconnectInterval);
             _reconnectTimer.Elapsed += OnReconnectTimer;
-
-            _monitorTimer = new Timer(state =>
-            {
-                Debug.WriteLine($"{DateTime.Now:hh:mm:ss.fff} _timeoutTimer:{ _timeoutTimer.Enable}");
-                Debug.WriteLine($"{DateTime.Now:hh:mm:ss.fff} _reconnectTimer:{_reconnectTimer.Enable}");
-                Debug.WriteLine($"{DateTime.Now:hh:mm:ss.fff} _poller.IsRunning:{_poller.IsRunning}");
-            });
-
-            _monitorTimer.Change(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
             _poller = new NetMQPoller { shim, _timeoutTimer, _reconnectTimer };
 
@@ -129,6 +119,7 @@ namespace ReliablePubSub.Client
             if (topic == WelcomeMessage)
             {
                 SubscriberAddress = e.Socket.Options.LastEndpoint;
+                Debug.WriteLine($"Subsciber Address: {SubscriberAddress}");
                 _welcomeMessageHandler?.Invoke();
             }
             else if (topic == HeartbeatMessage)
@@ -146,15 +137,18 @@ namespace ReliablePubSub.Client
 
         private void OnActorMessage(object sender, NetMQActorEventArgs e)
         {
-            var message = e.Actor.ReceiveMultipartMessage();
-            Debug.WriteLine(message);
-            try
+            NetMQMessage message = null;
+            while (e.Actor.TryReceiveMultipartMessage(ref message))
             {
-                _subscriberMessageHandler?.Invoke(message);
-            }
-            catch (Exception ex)
-            {
-                _subscriberErrorHandler?.Invoke(ex, message);
+                Debug.WriteLine(message);
+                try
+                {
+                    _subscriberMessageHandler?.Invoke(message);
+                }
+                catch (Exception ex)
+                {
+                    _subscriberErrorHandler?.Invoke(ex, message);
+                }
             }
         }
 
@@ -212,7 +206,7 @@ namespace ReliablePubSub.Client
 
                 // set the socket
                 _subscriber = connectedSocket;
-               
+
                 //// drop the welcome message
                 //_subscriber.SkipMultipartMessage();
 
@@ -229,6 +223,7 @@ namespace ReliablePubSub.Client
                 _subscriber.ReceiveReady += OnSubscriberMessage;
 
                 _actor.ReceiveReady += OnActorMessage;
+
                 _poller.Add(_actor);
 
                 _poller.Add(_subscriber);
