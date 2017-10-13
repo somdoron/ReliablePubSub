@@ -12,7 +12,7 @@ namespace ReliablePubSub.Client
         private readonly ushort _publisherPort;
         private readonly ushort _snapshotPort;
         private readonly ReliableClient _client;
-        private IDictionary<Type, TypeConfig> _knownTypes;
+        private readonly IDictionary<Type, TypeConfig> _knownTypes;
         private readonly IDictionary<string, Type> _topics;
         private readonly ILastValueCache _lastValueCache;
 
@@ -26,7 +26,7 @@ namespace ReliablePubSub.Client
             _snapshotPort = snapshotPort;
 
             _client = new ReliableClient(baseAddress.Select(x => $"{x}:{publisherPort}"), TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(5), HandleUpdate, (x, m) => Console.WriteLine($"Error in message handler. Exception {x} Message {m}"),
+                TimeSpan.FromSeconds(5), HandleUpdate, (x, m) => Debug.WriteLine($"Error in message handler. Exception {x} Message {m}"),
                 GetSnapshots);
 
             foreach (var topic in _topics.Keys)
@@ -46,8 +46,6 @@ namespace ReliablePubSub.Client
             _lastValueCache.AddOrUpdate(topic, key, obj);
 
             Console.WriteLine($"From subscriber:{obj}");
-            //Console.WriteLine(
-            //    $"Message received. Topic: {m.First.ConvertToString()}, Message: {m.Last.ConvertToString()}");
         }
 
         private void GetSnapshots()
@@ -79,8 +77,6 @@ namespace ReliablePubSub.Client
                             else
                                 Debug.WriteLine($"Object from snapshot dropped. Cached: {cachedValue} Snapshot: {obj}");
                         }
-
-                        //Console.WriteLine($"Snapshot: {snapshot.Last.ConvertToString()}");
                     }
                 }
             }

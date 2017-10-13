@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.ServiceModel.Configuration;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NetMQ;
 using ReliablePubSub.Common;
 
 namespace ReliablePubSub.Server
@@ -36,7 +30,7 @@ namespace ReliablePubSub.Server
             //} while (Console.ReadKey().Key != ConsoleKey.Escape);
 
             var knownTypes = new Dictionary<Type, TypeConfig>();
-            knownTypes.Add(typeof(MyMessage), new TypeConfig(typeof(MyMessage))
+            knownTypes.Add(typeof(MyMessage), new TypeConfig
             {
                 Serializer = new WireSerializer(),
                 Comparer = new DefaultComparer<MyMessage>(),
@@ -47,21 +41,32 @@ namespace ReliablePubSub.Server
             topics.Add("topic1", typeof(MyMessage));
 
             var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys);
-
-            long id = 0;
-            var rnd = new Random(1);
-            while (true)
+            using (var tokenSource = new CancellationTokenSource())
             {
-                var message = new MyMessage()
+                var task = Task.Run(() =>
                 {
-                    Id = id++,
-                    Key = rnd.Next(1, 100).ToString(),
-                    Body = $"Body: {Guid.NewGuid().ToString()}",
-                    TimeStamp = DateTime.UtcNow
-                };
-                publisher.Publish(knownTypes, "topic1", message);
-                Thread.Sleep(100);
+
+                    long id = 0;
+                    var rnd = new Random(1);
+                    while (tokenSource.IsCancellationRequested)
+                    {
+                        var message = new MyMessage()
+                        {
+                            Id = id++,
+                            Key = rnd.Next(1, 100).ToString(),
+                            Body = $"Body: {Guid.NewGuid().ToString()}",
+                            TimeStamp = DateTime.UtcNow
+                        };
+                        publisher.Publish(knownTypes, "topic1", message);
+                        Thread.Sleep(100);
+                    }
+                }, tokenSource.Token);
+
+                while (Console.ReadKey().Key != ConsoleKey.Escape) { }
+                tokenSource.Cancel();
+                task.Wait(tokenSource.Token);
             }
         }
     }
+}
 }

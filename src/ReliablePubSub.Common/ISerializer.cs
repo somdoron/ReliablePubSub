@@ -1,7 +1,4 @@
-﻿using Wire.Extensions;
-using Wire.ValueSerializers;
-
-namespace ReliablePubSub.Common
+﻿namespace ReliablePubSub.Common
 {
     public interface ISerializer
     {

@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-namespace ReliablePubSub.Common
+﻿namespace ReliablePubSub.Common
 {
     public interface ILastValueCache
     {

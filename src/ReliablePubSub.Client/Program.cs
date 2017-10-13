@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using ReliablePubSub.Common;
 
 namespace ReliablePubSub.Client
@@ -11,7 +9,7 @@ namespace ReliablePubSub.Client
         private static void Main(string[] args)
         {
             var knownTypes = new Dictionary<Type, TypeConfig>();
-            knownTypes.Add(typeof(MyMessage), new TypeConfig(typeof(MyMessage))
+            knownTypes.Add(typeof(MyMessage), new TypeConfig
             {
                 Serializer = new WireSerializer(),
                 Comparer = new DefaultComparer<MyMessage>(),
