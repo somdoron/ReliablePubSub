@@ -23,8 +23,11 @@ namespace ReliablePubSub.Client
             {
                 Console.WriteLine($"Client Cache Updated. Topic:{topic} Key:{key} Value:{value} ClientTime:{DateTime.Now:hh:mm:ss.fff}");
             });
-            var subscriber = new Subscriber(new[] { "tcp://localhost" }, 6669, 6668, knownTypes, topics, cache);
 
+            using (var subscriber = new Subscriber(new[] { "tcp://localhost" }, 6669, 6668, knownTypes, topics, cache))
+            {
+                while (Console.ReadKey().Key != ConsoleKey.Escape) { }
+            }
 
             //using (var snapshotClient = new SnapshotClient(TimeSpan.FromSeconds(30), "tcp://localhost:6668"))
             //{
@@ -43,7 +46,7 @@ namespace ReliablePubSub.Client
 
             //client.Subscribe("topic1");
 
-            Console.ReadLine();
+
         }
     }
 }

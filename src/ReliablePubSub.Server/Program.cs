@@ -40,9 +40,8 @@ namespace ReliablePubSub.Server
             var topics = new Dictionary<string, Type>();
             topics.Add("topic1", typeof(MyMessage));
 
-
+            using (var tokenSource = new CancellationTokenSource())
             using (var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys))
-            using (var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
                 var task = Task.Run(() =>
                 {
@@ -54,7 +53,7 @@ namespace ReliablePubSub.Server
                         var message = new MyMessage()
                         {
                             Id = id++,
-                            Key = rnd.Next(1, 100).ToString(),
+                            Key = rnd.Next(1, 1000).ToString(),
                             Body = $"Body: {Guid.NewGuid().ToString()}",
                             TimeStamp = DateTime.UtcNow
                         };
