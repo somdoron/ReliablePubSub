@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -10,8 +7,8 @@ namespace ReliablePubSub.Client
 {
     class Simple
     {
-        private NetMQPoller m_poller;
-        private NetMQTimer m_timeoutTimer;
+        private NetMQPoller _poller;
+        private NetMQTimer _timeoutTimer;
 
         public Simple()
         {
@@ -20,7 +17,7 @@ namespace ReliablePubSub.Client
 
         public void Cancel()
         {
-            m_poller.Stop();
+            _poller.Stop();
         }
 
         public void Run(params string[] addresses)
@@ -31,12 +28,12 @@ namespace ReliablePubSub.Client
                 throw new Exception("cannot connect to eny of the endpoints");
 
             // timeout timer, when heartbeat was not arrived for 5 seconds
-            m_timeoutTimer = new NetMQTimer(TimeSpan.FromSeconds(5));
-            m_timeoutTimer.Elapsed += (sender, args) =>
+            _timeoutTimer = new NetMQTimer(TimeSpan.FromSeconds(5));
+            _timeoutTimer.Elapsed += (sender, args) =>
             {
                 // timeout happend, first dispose existing subscriber
                 subscriber.Dispose();
-                m_poller.Remove(subscriber);
+                _poller.Remove(subscriber);
 
                 // connect again
                 subscriber = Connect(addresses);
@@ -44,12 +41,12 @@ namespace ReliablePubSub.Client
                 if (subscriber == null)
                     throw new Exception("cannot connect to eny of the endpoints");
 
-                m_poller.Add(subscriber);
+                _poller.Add(subscriber);
             };
 
-            m_poller = new NetMQPoller { subscriber, m_timeoutTimer };
+            _poller = new NetMQPoller { subscriber, _timeoutTimer };
 
-            m_poller.Run();
+            _poller.Run();
         }
 
         private void OnSubscriberMessage(object sender, NetMQSocketEventArgs e)
@@ -61,18 +58,18 @@ namespace ReliablePubSub.Client
                 case "WM":
                     // welcome message, print and reset timeout timer
                     Console.WriteLine("Connection drop recongnized");
-                    m_timeoutTimer.Enable = false;
-                    m_timeoutTimer.Enable = true;
+                    _timeoutTimer.Enable = false;
+                    _timeoutTimer.Enable = true;
                     break;
                 case "HB":
                     // heartbeat, we reset timeout timer
-                    m_timeoutTimer.Enable = false;
-                    m_timeoutTimer.Enable = true;
+                    _timeoutTimer.Enable = false;
+                    _timeoutTimer.Enable = true;
                     break;
                 default:
                     // its a message, reset timeout timer, notify the client, for the example we just print it
-                    m_timeoutTimer.Enable = false;
-                    m_timeoutTimer.Enable = true;
+                    _timeoutTimer.Enable = false;
+                    _timeoutTimer.Enable = true;
                     string message = e.Socket.ReceiveFrameString();
                     Console.WriteLine("Message received. Topic: {0}, Message: {1}", topic, message);
                     break;

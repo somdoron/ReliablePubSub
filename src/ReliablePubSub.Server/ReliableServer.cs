@@ -1,67 +1,63 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
 
 namespace ReliablePubSub.Server
 {
-    class ReliableServer
+    class ReliableServer : IDisposable
     {
         private readonly TimeSpan _heartbeatInterval;
         private const string PublishMessageCommand = "P";
         private const string WelcomeMessage = "WM";
         private const string HeartbeatMessage = "HB";
 
-        private readonly string m_address;
-        private readonly NetMQActor m_actor;
-        private XPublisherSocket m_publisherSocket;
-        private NetMQTimer m_heartbeatTimer;
-        private NetMQPoller m_poller;
+        private readonly string _address;
+        private readonly NetMQActor _actor;
+        private XPublisherSocket _publisherSocket;
+        private NetMQTimer _heartbeatTimer;
+        private NetMQPoller _poller;
 
         public ReliableServer(TimeSpan heartbeatInterval, string address)
         {
-            m_address = address;
+            _address = address;
             _heartbeatInterval = heartbeatInterval;
 
             // actor is like thread with builtin pair sockets connect the user thread with the actor thread
-            m_actor = NetMQActor.Create(Run);
+            _actor = NetMQActor.Create(Run);
         }
 
         public void Dispose()
         {
-            m_actor.Dispose();
+            _actor.Dispose();
         }
 
         private void Run(PairSocket shim)
         {
-            using (m_publisherSocket = new XPublisherSocket())
+            using (_publisherSocket = new XPublisherSocket())
             {
-                m_publisherSocket.SetWelcomeMessage(WelcomeMessage);
-                m_publisherSocket.Bind(m_address);
+                _publisherSocket.SetWelcomeMessage(WelcomeMessage);
+                _publisherSocket.Bind(_address);
 
-                m_publisherSocket.ReceiveReady += DropPublisherSubscriptions;
+                _publisherSocket.ReceiveReady += DropPublisherSubscriptions;
 
-                m_heartbeatTimer = new NetMQTimer(_heartbeatInterval);
-                m_heartbeatTimer.Elapsed += OnHeartbeatTimerElapsed;
+                _heartbeatTimer = new NetMQTimer(_heartbeatInterval);
+                _heartbeatTimer.Elapsed += OnHeartbeatTimerElapsed;
 
                 shim.ReceiveReady += OnShimMessage;
 
                 // signal the actor that the shim is ready to work
                 shim.SignalOK();
 
-                m_poller = new NetMQPoller { m_publisherSocket, shim, m_heartbeatTimer };
+                _poller = new NetMQPoller { _publisherSocket, shim, _heartbeatTimer };
                 // Polling until poller is cancelled
-                m_poller.Run();
+                _poller.Run();
             }
         }
 
         private void OnHeartbeatTimerElapsed(object sender, NetMQTimerEventArgs e)
         {
             // Heartbeat timer elapsed, let's send another heartbeat
-            m_publisherSocket.SendFrame(HeartbeatMessage);
+            _publisherSocket.SendFrame(HeartbeatMessage);
         }
 
         private void OnShimMessage(object sender, NetMQSocketEventArgs e)
@@ -72,26 +68,26 @@ namespace ReliablePubSub.Server
             {
                 // just forward the message to the publisher
                 NetMQMessage message = e.Socket.ReceiveMultipartMessage();
-                m_publisherSocket.SendMultipartMessage(message);
+                _publisherSocket.SendMultipartMessage(message);
             }
             else if (command == NetMQActor.EndShimMessage)
             {
                 // we got dispose command, we just stop the poller
-                m_poller.Stop();
+                _poller.Stop();
             }
         }
 
         private void DropPublisherSubscriptions(object sender, NetMQSocketEventArgs e)
         {
             // just drop the subscription messages, we have to do that to Welcome message to work
-            m_publisherSocket.SkipMultipartMessage();
+            _publisherSocket.SkipMultipartMessage();
         }
 
 
         public void Publish(NetMQMessage message)
         {
             // we can use actor like NetMQSocket
-            m_actor.SendMoreFrame(PublishMessageCommand).SendMultipartMessage(message);
+            _actor.SendMoreFrame(PublishMessageCommand).SendMultipartMessage(message);
         }
     }
 }
