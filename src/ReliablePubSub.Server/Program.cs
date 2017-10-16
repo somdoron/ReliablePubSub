@@ -43,7 +43,7 @@ namespace ReliablePubSub.Server
             using (var tokenSource = new CancellationTokenSource())
             using (var publisher = new Publisher("tcp://*", 6669, 6668, topics.Keys))
             {
-                var task = Task.Run(() =>
+                Task.Run(() =>
                 {
 
                     long id = 0;
